@@ -10,6 +10,10 @@ loadEventListeners();
 
 // Load all event Listeners fn
 function loadEventListeners() {
+	//D OM loadEvent
+
+	document.addEventListener("DOMContentLoaded", getTasks);
+
 	//Add task event
 	form.addEventListener("submit", addTask);
 
@@ -21,6 +25,27 @@ function loadEventListeners() {
 
 	//filter tasks
 	filter.addEventListener("keyup", filterTasks);
+}
+
+// get Tasks from Local Storage
+
+function getTasks() {
+	let tasks;
+	if (localStorage.getItem("tasks") === null) {
+		tasks = [];
+	} else {
+		tasks = JSON.parse(localStorage.getItem("tasks"));
+	}
+	tasks.forEach(function (task) {
+		const li = document.createElement("li");
+		li.className = "collection-item";
+		li.appendChild(document.createTextNode(task));
+		const link = document.createElement("a");
+		link.className = "delete-item secondary-content";
+		link.innerHTML = '<i class ="fa fa-remove"></i>';
+		li.appendChild(link);
+		taskList.appendChild(li);
+	});
 }
 
 //add task
@@ -40,10 +65,25 @@ function addTask(e) {
 	// Append li
 	taskList.appendChild(li);
 
+	// store in LocalStorage
+	keepInLocalStorage(taskInput.value);
+
 	// Reset filter
 	taskInput.value = "";
 
 	e.preventDefault();
+}
+
+// persist to LocalStorage
+function keepInLocalStorage(task) {
+	let tasks;
+	if (localStorage.getItem("tasks") === null) {
+		tasks = [];
+	} else {
+		tasks = JSON.parse(localStorage.getItem("tasks"));
+	}
+	tasks.push(task);
+	localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 //remove task
@@ -51,8 +91,28 @@ function removeTask(e) {
 	if (e.target.parentElement.classList.contains("delete-item")) {
 		if (confirm("Are you sure?")) {
 			e.target.parentElement.parentElement.remove();
+
+			//remove from Local Storage
+			removeFromLocalStorage(e.target.parentElement.parentElement);
 		}
 	}
+}
+
+//Remove from LS
+function removeFromLocalStorage(taskItem) {
+	let tasks;
+	if (localStorage.getItem("tasks") === null) {
+		tasks = [];
+	} else {
+		tasks = JSON.parse(localStorage.getItem("tasks"));
+	}
+
+	tasks.forEach(function (task, index) {
+		if (taskItem.textContent === task) {
+			tasks.splice(index, 1);
+		}
+	});
+	localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 // clear all tasks
@@ -62,6 +122,12 @@ function clearTasks() {
 	while (taskList.firstChild) {
 		taskList.removeChild(taskList.firstChild);
 	}
+	// clear all from LS
+	clearAllFromLocalStorage();
+}
+
+function clearAllFromLocalStorage() {
+	localStorage.clear();
 }
 
 // filter tasks
